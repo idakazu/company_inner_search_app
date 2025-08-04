@@ -173,12 +173,92 @@ def load_employee_csv(file_path):
         )
         documents.append(all_doc)
         
-        return documents
-        
-    except Exception as e:
-        # エラーが発生した場合は空のリストを返す
-        print(f"Error loading employee CSV: {e}")
-        return []
+        # 人事部専用の追加ドキュメントを作成（検索精度向上のため）
+        hr_dept_employees = df[df['部署'] == '人事部']
+        if len(hr_dept_employees) > 0:
+            hr_content_lines = [
+                "【人事部従業員情報詳細一覧】",
+                f"人事部総人数: {len(hr_dept_employees)}名",
+                "",
+                "【人事部全メンバー詳細情報】"
+            ]
+            
+            for i, (_, emp) in enumerate(hr_dept_employees.iterrows(), 1):
+                hr_content_lines.extend([
+                    f"\n■ 人事部メンバー {i}人目",
+                    f"【{emp['氏名（フルネーム）']}】",
+                    f"・社員ID: {emp['社員ID']}",
+                    f"・部署: {emp['部署']}（人事部所属）",
+                    f"・役職: {emp['役職']}",
+                    f"・従業員区分: {emp['従業員区分']}",
+                    f"・性別: {emp['性別']}",
+                    f"・年齢: {emp['年齢']}歳",
+                    f"・入社日: {emp['入社日']}",
+                    f"・メールアドレス: {emp['メールアドレス']}",
+                    f"・スキルセット: {emp['スキルセット']}",
+                    f"・保有資格: {emp['保有資格']}",
+                    f"・学歴: {emp['大学名']} {emp['学部・学科']} ({emp['卒業年月日']}卒業)",
+                    ""
+                ])
+            
+            hr_content_lines.extend([
+                "\n【人事部検索用キーワード】",
+                "人事部, 人事, HR, 人材管理, 採用, 労務, 給与, 人事担当, 人事スタッフ",
+                "従業員情報, 社員情報, 人事メンバー, 人事チーム, 人事組織",
+                f"人事部員{len(hr_dept_employees)}名, 人事部所属, 人事部一覧",
+                "人事部に所属, 人事部の従業員, 人事部の社員, 人事部のスタッフ, 人事部のメンバー"
+            ])
+            
+            hr_content = "\n".join(hr_content_lines)
+            
+            hr_doc = Document(
+                page_content=hr_content,
+                metadata={
+                    "source": file_path,
+                    "department": "人事部",
+                    "employee_count": len(hr_dept_employees),
+                    "document_type": "hr_department_detailed"
+                }
+            )
+            documents.append(hr_doc)
+            
+            # 人事部専用テーブル形式ドキュメントも追加
+            hr_table_lines = [
+                "【人事部従業員一覧表】",
+                f"人事部所属者: {len(hr_dept_employees)}名",
+                "",
+                "| No. | 氏名 | 社員ID | 役職 | 従業員区分 | 年齢 | 入社日 |",
+                "|-----|------|--------|------|------------|------|--------|"
+            ]
+            
+            for i, (_, emp) in enumerate(hr_dept_employees.iterrows(), 1):
+                hr_table_lines.append(
+                    f"| {i} | {emp['氏名（フルネーム）']} | {emp['社員ID']} | {emp['役職']} | {emp['従業員区分']} | {emp['年齢']}歳 | {emp['入社日']} |"
+                )
+            
+            hr_table_lines.extend([
+                "",
+                "【詳細情報】",
+                "上記は人事部に所属している全従業員の一覧です。",
+                f"合計{len(hr_dept_employees)}名が人事部に配属されています。",
+                "",
+                "【人事部関連キーワード】",
+                "人事部所属, 人事部員, 人事部の従業員, 人事部一覧, 人事部メンバー",
+                "人事担当者, 人事スタッフ, 人事チーム, HR部門, 人材管理部門"
+            ])
+            
+            hr_table_content = "\n".join(hr_table_lines)
+            
+            hr_table_doc = Document(
+                page_content=hr_table_content,
+                metadata={
+                    "source": file_path,
+                    "department": "人事部",
+                    "employee_count": len(hr_dept_employees),
+                    "document_type": "hr_department_table"
+                }
+            )
+            documents.append(hr_table_doc)
         
         return documents
         
