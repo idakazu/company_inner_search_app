@@ -101,14 +101,27 @@ def load_employee_csv(file_path):
                 ""
             ])
             
-            # 検索キーワードを強化
-            content_lines.extend([
-                "【検索キーワード】",
-                f"{dept}, {dept}部, {dept}所属, 従業員, 社員, 名簿, スタッフ, 人事情報, 組織, メンバー",
-                f"役職: {', '.join(dept_employees['役職'].unique())}",
-                f"従業員区分: {', '.join(dept_employees['従業員区分'].unique())}",
-                ""
-            ])
+            # 検索キーワードを強化（人事部の場合は特別に強化）
+            if dept == "人事部":
+                content_lines.extend([
+                    "【検索キーワード】",
+                    f"{dept}, {dept}部, {dept}所属, 従業員, 社員, 名簿, スタッフ, 人事情報, 組織, メンバー",
+                    f"役職: {', '.join(dept_employees['役職'].unique())}",
+                    f"従業員区分: {', '.join(dept_employees['従業員区分'].unique())}",
+                    "人事部, 人事, HR, 人材管理, 採用, 労務, 給与, 人事担当, 人事スタッフ",
+                    "人事部に所属, 人事部の従業員, 人事部の社員, 人事部のスタッフ, 人事部のメンバー",
+                    "人事部員, 人事部一覧, 人事チーム, HR部門, 人材管理部門",
+                    f"人事部詳細情報, 人事部{len(dept_employees)}名, 人事部全員",
+                    ""
+                ])
+            else:
+                content_lines.extend([
+                    "【検索キーワード】",
+                    f"{dept}, {dept}部, {dept}所属, 従業員, 社員, 名簿, スタッフ, 人事情報, 組織, メンバー",
+                    f"役職: {', '.join(dept_employees['役職'].unique())}",
+                    f"従業員区分: {', '.join(dept_employees['従業員区分'].unique())}",
+                    ""
+                ])
             
             # 統合されたテキストを作成
             content = "\n".join(content_lines)
