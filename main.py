@@ -26,7 +26,9 @@ import constants as ct
 ############################################################
 # ブラウザタブの表示文言を設定
 st.set_page_config(
-    page_title=ct.APP_NAME
+    page_title=ct.APP_NAME,
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # ログ出力を行うためのロガーの設定
@@ -51,6 +53,10 @@ except Exception as e:
 if not "initialized" in st.session_state:
     st.session_state.initialized = True
     logger.info(ct.APP_BOOT_MESSAGE)
+
+# モードの初期化（サイドバー表示のため）
+if "mode" not in st.session_state:
+    st.session_state.mode = ct.ANSWER_MODE_1
 
 
 ############################################################

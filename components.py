@@ -25,29 +25,28 @@ def display_select_mode():
     """
     回答モードのラジオボタンをサイドバーに表示
     """
-    with st.sidebar:
-        # サイドバーのタイトル
-        st.markdown("## 利用目的")
-        
-        # 回答モードを選択する用のラジオボタンを表示
-        st.session_state.mode = st.radio(
-            label="",
-            options=[ct.ANSWER_MODE_1, ct.ANSWER_MODE_2],
-            index=0
-        )
-        
-        # 区切り線
-        st.markdown("---")
-        
-        # 「社内文書検索」の説明（常に表示）
-        st.markdown("**【「社内文書検索」を選択した場合】**")
-        st.info("入力内容と関連性が高い社内文書のありかを検索できます。")
-        st.code("【入力例】\n社員の育成方針に関するMTGの議事録", wrap_lines=True, language=None)
-
-        # 「社内問い合わせ」の機能説明
-        st.markdown("**【「社内問い合わせ」を選択した場合】**")
-        st.info("質問・要望に対して、社内文書の情報をもとに回答を得られます。")
-        st.code("【入力例】\n人事部に所属している従業員情報を一覧化して", wrap_lines=True, language=None)
+    # サイドバーの状態を確実に設定
+    st.sidebar.markdown("## 利用目的")
+    
+    # 回答モードを選択する用のラジオボタンを表示
+    st.session_state.mode = st.sidebar.radio(
+        label="",
+        options=[ct.ANSWER_MODE_1, ct.ANSWER_MODE_2],
+        index=0
+    )
+    
+    # 区切り線
+    st.sidebar.markdown("---")
+    
+    # 「社内文書検索」の説明（常に表示）
+    st.sidebar.markdown("**【「社内文書検索」を選択した場合】**")
+    st.sidebar.info("入力内容と関連性が高い社内文書のありかを検索できます。")
+    st.sidebar.code("【入力例】\n社員の育成方針に関するMTGの議事録", language=None)
+    
+    # 「社内問い合わせ」の説明（常に表示）
+    st.sidebar.markdown("**【「社内問い合わせ」を選択した場合】**")
+    st.sidebar.info("質問・要望に対して、社内文書の情報をもとに回答を得られます。")
+    st.sidebar.code("【入力例】\n人事部に所属している従業員情報を一覧化して", language=None)
 
 
 def display_initial_ai_message():
