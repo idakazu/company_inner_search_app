@@ -6,10 +6,11 @@
 # ライブラリの読み込み
 ############################################################
 import os
+import pandas as pd
 from dotenv import load_dotenv
 import streamlit as st
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.schema import HumanMessage
+from langchain.schema import HumanMessage, Document
 from langchain_openai import ChatOpenAI
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -44,6 +45,118 @@ def get_source_icon(source):
         icon = ct.DOC_SOURCE_ICON
     
     return icon
+
+
+def load_employee_csv(file_path):
+    """
+    社員名簿CSVファイルを統合されたドキュメントとして読み込む
+
+    Args:
+        file_path: CSVファイルのパス
+
+    Returns:
+        統合されたドキュメントのリスト
+    """
+    try:
+        # CSVファイルを読み込み
+        df = pd.read_csv(file_path, encoding='utf-8')
+        
+        # 部署ごとにグループ化して、検索しやすいテキスト形式に変換
+        departments = df['部署'].unique()
+        documents = []
+        
+        for dept in departments:
+            dept_employees = df[df['部署'] == dept]
+            
+            # 部署ごとの統合テキストを作成
+            content_lines = [f"【{dept}所属の従業員情報】"]
+            content_lines.append(f"部署名: {dept}")
+            content_lines.append(f"所属人数: {len(dept_employees)}人")
+            content_lines.append("")
+            
+            # 各従業員の詳細情報を追加
+            for _, employee in dept_employees.iterrows():
+                employee_info = [
+                    f"■従業員{employee['社員ID']}: {employee['氏名（フルネーム）']}",
+                    f"  性別: {employee['性別']}",
+                    f"  年齢: {employee['年齢']}歳",
+                    f"  メールアドレス: {employee['メールアドレス']}",
+                    f"  従業員区分: {employee['従業員区分']}",
+                    f"  入社日: {employee['入社日']}",
+                    f"  部署: {employee['部署']}",
+                    f"  役職: {employee['役職']}",
+                    f"  スキルセット: {employee['スキルセット']}",
+                    f"  保有資格: {employee['保有資格']}",
+                    f"  大学名: {employee['大学名']}",
+                    f"  学部・学科: {employee['学部・学科']}",
+                    f"  卒業年月日: {employee['卒業年月日']}",
+                    ""
+                ]
+                content_lines.extend(employee_info)
+            
+            # 部署別の検索キーワードも追加
+            content_lines.append("【検索キーワード】")
+            content_lines.append(f"{dept}, {dept}部, {dept}所属, 従業員, 社員, 名簿, スタッフ")
+            
+            # 役職別の分類も追加
+            roles = dept_employees['役職'].unique()
+            content_lines.append(f"役職: {', '.join(roles)}")
+            
+            # 従業員区分別の分類も追加
+            emp_types = dept_employees['従業員区分'].unique()
+            content_lines.append(f"従業員区分: {', '.join(emp_types)}")
+            
+            # 統合されたテキストを作成
+            content = "\n".join(content_lines)
+            
+            # ドキュメントオブジェクトを作成
+            doc = Document(
+                page_content=content,
+                metadata={
+                    "source": file_path,
+                    "department": dept,
+                    "employee_count": len(dept_employees)
+                }
+            )
+            documents.append(doc)
+        
+        # 全社員を対象とした統合ドキュメントも作成
+        all_content_lines = [
+            "【全社員名簿・従業員情報一覧】",
+            f"総従業員数: {len(df)}人",
+            f"部署数: {len(departments)}部署",
+            f"部署一覧: {', '.join(departments)}",
+            ""
+        ]
+        
+        # 部署別の概要を追加
+        for dept in departments:
+            dept_count = len(df[df['部署'] == dept])
+            all_content_lines.append(f"{dept}: {dept_count}人")
+        
+        all_content_lines.append("")
+        all_content_lines.append("【検索キーワード】")
+        all_content_lines.append("社員名簿, 従業員名簿, 全社員, 人事情報, 組織図, 部署別, 従業員一覧, スタッフ一覧")
+        
+        all_content = "\n".join(all_content_lines)
+        
+        # 全社員用ドキュメントを作成
+        all_doc = Document(
+            page_content=all_content,
+            metadata={
+                "source": file_path,
+                "department": "全社",
+                "employee_count": len(df)
+            }
+        )
+        documents.append(all_doc)
+        
+        return documents
+        
+    except Exception as e:
+        # エラーが発生した場合は空のリストを返す
+        print(f"Error loading employee CSV: {e}")
+        return []
 
 
 def build_error_message(message):
