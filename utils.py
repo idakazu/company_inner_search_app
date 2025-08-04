@@ -76,15 +76,6 @@ def load_employee_csv(file_path):
                 ""
             ]
             
-            # 部署の概要情報を追加
-            if dept == "人事部":
-                content_lines.extend([
-                    "【人事部について】",
-                    "人事部は従業員の採用、研修、評価、給与管理などを担当する重要な部署です。",
-                    f"現在{len(dept_employees)}名の従業員が在籍しています。",
-                    ""
-                ])
-            
             # 各従業員の詳細情報を追加
             content_lines.append("【従業員一覧】")
             for i, (_, employee) in enumerate(dept_employees.iterrows(), 1):
@@ -134,58 +125,27 @@ def load_employee_csv(file_path):
             )
             documents.append(doc)
         
-        # 人事部専用の詳細ドキュメントを作成
-        hr_employees = df[df['部署'] == '人事部']
-        if len(hr_employees) > 0:
-            hr_content_lines = [
-                "【人事部従業員詳細情報】",
-                "=== 人事部メンバー完全リスト ===",
-                f"人事部総人数: {len(hr_employees)}名",
-                "",
-                "【全メンバー詳細】"
-            ]
-            
-            for i, (_, emp) in enumerate(hr_employees.iterrows(), 1):
-                hr_content_lines.extend([
-                    f"【{i}番目】{emp['氏名（フルネーム）']} ({emp['社員ID']})",
-                    f"  ・役職: {emp['役職']}",
-                    f"  ・年齢: {emp['年齢']}歳 ({emp['性別']})",
-                    f"  ・雇用形態: {emp['従業員区分']}",
-                    f"  ・入社: {emp['入社日']}",
-                    f"  ・連絡先: {emp['メールアドレス']}",
-                    f"  ・専門スキル: {emp['スキルセット']}",
-                    f"  ・資格: {emp['保有資格']}",
-                    f"  ・学歴: {emp['大学名']} {emp['学部・学科']}",
-                    ""
-                ])
-            
-            hr_content_lines.extend([
-                "【人事部検索用キーワード】",
-                "人事部, 人事課, HR, Human Resources, 人材管理, 採用, 研修, 給与, 評価",
-                "従業員管理, 労務, 人事担当, 人事スタッフ, 人事メンバー, 人事チーム",
-                f"人事部メンバー: {', '.join(hr_employees['氏名（フルネーム）'].tolist())}",
-                f"人事部役職: {', '.join(hr_employees['役職'].unique())}"
-            ])
-            
-            hr_doc = Document(
-                page_content="\n".join(hr_content_lines),
-                metadata={
-                    "source": file_path,
-                    "department": "人事部",
-                    "employee_count": len(hr_employees),
-                    "document_type": "hr_detailed_roster"
-                }
-            )
-            documents.append(hr_doc)
-        
-        # 全社員を対象とした統合ドキュメントも作成
+        # 全社員統合ドキュメント（人事部情報を強調）
         all_content_lines = [
             "【全社員名簿・従業員情報一覧】",
             f"総従業員数: {len(df)}人",
             f"部署数: {len(departments)}部署",
             f"部署一覧: {', '.join(departments)}",
-            ""
+            "",
+            "【特別注記: 人事部情報】",
+            f"人事部所属者数: {len(df[df['部署'] == '人事部'])}名",
+            "人事部は重要な部署として以下のメンバーで構成されています:",
         ]
+        
+        # 人事部メンバーを個別に列挙
+        hr_members = df[df['部署'] == '人事部']
+        for i, (_, emp) in enumerate(hr_members.iterrows(), 1):
+            all_content_lines.append(f"{i}. {emp['氏名（フルネーム）']} ({emp['役職']}, {emp['従業員区分']})")
+        
+        all_content_lines.extend([
+            "",
+            "【部署別人数】"
+        ])
         
         # 部署別の概要を追加
         for dept in departments:
@@ -194,13 +154,9 @@ def load_employee_csv(file_path):
         
         all_content_lines.extend([
             "",
-            "【人事部特別情報】",
-            f"人事部所属者: {len(df[df['部署'] == '人事部'])}名",
-            f"人事部メンバー名: {', '.join(df[df['部署'] == '人事部']['氏名（フルネーム）'].tolist())}",
-            "",
             "【検索キーワード】",
             "社員名簿, 従業員名簿, 全社員, 人事情報, 組織図, 部署別, 従業員一覧, スタッフ一覧",
-            "人事部, 各部署, 組織構成, メンバー構成"
+            "人事部, 各部署, 組織構成, メンバー構成, 全従業員, 社員情報"
         ])
         
         all_content = "\n".join(all_content_lines)
