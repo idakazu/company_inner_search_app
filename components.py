@@ -56,8 +56,8 @@ def display_initial_ai_message():
     with st.chat_message("assistant"):
         # 緑色の背景でシンプルな初期メッセージを表示
         st.success("こんにちは。私は社内文書の情報をもとに回答する生成AIチャットボットです。サイドバーで利用目的を選択し、画面下部のチャット欄からメッセージを送信してください。")
-        # 黄色の背景で追加メッセージを表示
-        st.warning("具体的に入力したほうが期待通りの回答を得やすいです。")
+        # 黄色の背景で追加メッセージを表示（警告アイコン付き）
+        st.warning("具体的に入力したほうが期待通りの回答を得やすいです。", icon="⚠️")
 
 
 def display_conversation_log():
