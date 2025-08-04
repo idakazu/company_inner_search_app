@@ -132,17 +132,26 @@ def load_employee_csv(file_path):
             f"部署数: {len(departments)}部署",
             f"部署一覧: {', '.join(departments)}",
             "",
-            "【特別注記: 人事部情報】",
+            "【重要: 人事部従業員完全リスト】",
             f"人事部所属者数: {len(df[df['部署'] == '人事部'])}名",
-            "人事部は重要な部署として以下のメンバーで構成されています:",
+            "人事部に所属している全従業員は以下の通りです:",
         ]
         
-        # 人事部メンバーを個別に列挙
+        # 人事部メンバーを個別に詳細列挙
         hr_members = df[df['部署'] == '人事部']
         for i, (_, emp) in enumerate(hr_members.iterrows(), 1):
-            all_content_lines.append(f"{i}. {emp['氏名（フルネーム）']} ({emp['役職']}, {emp['従業員区分']})")
+            all_content_lines.extend([
+                f"\n{i}. 【人事部】{emp['氏名（フルネーム）']}",
+                f"   - 社員ID: {emp['社員ID']}",
+                f"   - 役職: {emp['役職']}",
+                f"   - 従業員区分: {emp['従業員区分']}",
+                f"   - 年齢: {emp['年齢']}歳",
+                f"   - 入社日: {emp['入社日']}"
+            ])
         
         all_content_lines.extend([
+            "",
+            f"※人事部は{len(hr_members)}名の重要な組織です",
             "",
             "【部署別人数】"
         ])
@@ -259,6 +268,37 @@ def load_employee_csv(file_path):
                 }
             )
             documents.append(hr_table_doc)
+            
+            # 人事部専用の簡潔な名前リストドキュメントも追加（より高い検索精度のため）
+            hr_simple_lines = [
+                "【人事部メンバー簡潔リスト】",
+                f"人事部には{len(hr_dept_employees)}名の従業員が所属しています。",
+                "",
+                "人事部所属の全従業員："
+            ]
+            
+            for i, (_, emp) in enumerate(hr_dept_employees.iterrows(), 1):
+                hr_simple_lines.append(f"{i}. {emp['氏名（フルネーム）']} - {emp['役職']} ({emp['従業員区分']})")
+            
+            hr_simple_lines.extend([
+                "",
+                "これが人事部に所属している全従業員の完全なリストです。",
+                "人事部, 人事部所属, 人事部員, 人事部の従業員, 人事部一覧, 人事部メンバー",
+                f"人事部総数{len(hr_dept_employees)}名"
+            ])
+            
+            hr_simple_content = "\n".join(hr_simple_lines)
+            
+            hr_simple_doc = Document(
+                page_content=hr_simple_content,
+                metadata={
+                    "source": file_path,
+                    "department": "人事部",
+                    "employee_count": len(hr_dept_employees),
+                    "document_type": "hr_department_simple"
+                }
+            )
+            documents.append(hr_simple_doc)
         
         return documents
         
